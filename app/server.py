@@ -14,6 +14,42 @@ posts = [
         'title': 'Second Blog Post',
         'content': 'Some other content!',
         'date_posted': 'June 16, 2018'
+    },
+    {
+        'author': 'Eli Badgio',
+        'title': 'First Blog Post',
+        'content': 'Some simple content.',
+        'date_posted': 'June 16, 2018'
+    },
+    {
+        'author': 'Simon Sheintoch',
+        'title': 'Second Blog Post',
+        'content': 'Some other content!',
+        'date_posted': 'June 16, 2018'
+    },
+    {
+        'author': 'Eli Badgio',
+        'title': 'First Blog Post',
+        'content': 'Some simple content.',
+        'date_posted': 'June 16, 2018'
+    },
+    {
+        'author': 'Simon Sheintoch',
+        'title': 'Second Blog Post',
+        'content': 'Some other content!',
+        'date_posted': 'June 16, 2018'
+    },
+    {
+        'author': 'Eli Badgio',
+        'title': 'First Blog Post',
+        'content': 'Some simple content.',
+        'date_posted': 'June 16, 2018'
+    },
+    {
+        'author': 'Simon Sheintoch',
+        'title': 'Second Blog Post',
+        'content': 'Some other content!',
+        'date_posted': 'June 16, 2018'
     }
 ]
 

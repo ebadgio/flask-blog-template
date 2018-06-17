@@ -14,7 +14,7 @@
 </head>
 <body>
     <header class="site-header">
-      <nav id="nav" class="navbar navbar-expand-md fixed-top">
+      <nav id="nav" class="shadow-heavy navbar navbar-expand-md fixed-top">
         <div class="container">
           <a class="navbar-brand mr-4" href="/">Flask Blog</a>
           <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarToggleExternalContent" aria-controls="navbarToggleExternalContent" aria-expanded="false" aria-label="Toggle navigation">
@@ -22,8 +22,10 @@
           </button>
           <div class="collapse navbar-collapse" id="navbarToggleExternalContent">
             <div class="navbar-nav ml-auto">
-              <a class="nav-item nav-link" href="/login">Sign In</a>
-              <a class="nav-item nav-link" href="/register">Get Started</a>
+              <a class="nav-item nav-link mr-2" href="/login">Sign In</a>
+              <a class="nav-item" href="/register">
+                <button type="button" class="btn btn-outline-light">Get Started</button>
+              </a>
             </div>
           </div>
         </div>
