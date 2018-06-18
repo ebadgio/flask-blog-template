@@ -1,8 +1,12 @@
 from flask import Flask, render_template, url_for, flash, redirect
 from forms import RegistrationForm, LoginForm
+from pymongo import MongoClient
 import os
+
 app = Flask(__name__)
 app.config['SECRET_KEY'] = os.environ['SECRET_KEY']
+client = MongoClient(os.environ['MONGODB_URI'])
+db = client['flask-blog']
 
 # Dummy data posts
 posts = [
@@ -63,22 +67,56 @@ def feed():
 
 @app.route("/register", methods=['GET', 'POST'])
 def register():
+
+    # Create form instance
     form = RegistrationForm()
+
+    # Make sure the user's entries are valid
     if form.validate_on_submit():
-        flash('Account created for' + form.username.data + '!', 'success')
+
+        # Add user to database
+        newPost = db.users.insert_one({
+            "username": form.username.data,
+            "password": form.password.data,
+            "email": form.email.data
+        })
+
+        # For debugging purposes
+        print newPost
+
+        # Alert user that they were successfully registered
+        flash('Account created for ' + form.username.data + '!', 'success')
+
+        # Redirect user to the home feed
         return redirect(url_for('feed'))
+
+    # render the register html template and form for GET requests to '/register'
     return render_template('register.html', title='Register', form=form)
 
 
 @app.route("/login", methods=['GET', 'POST'])
 def login():
+
+    # Create form instance
     form = LoginForm()
+
+    # Make sure the user's entries are valid
     if form.validate_on_submit():
-        if form.email.data == 'badgio1028@gmail.com' and form.password.data == 'eli123':
+
+        # Check that this user is in the database
+        if db.users.find_one({"email": form.email.data, "password": form.password.data}):
+
+            # Alert user that login was succesful
             flash('You have been logged in!', 'success')
+
+            # Redirect user to the home feed
             return redirect(url_for('feed'))
         else:
+
+            # Otherwise alert user that login was unsuccessful
             flash('Login Unsuccessful. Please check username and password', 'danger')
+
+    # render the login html template and form for GET requests to '/login'
     return render_template('login.html', title='Login', form=form)
 
 
