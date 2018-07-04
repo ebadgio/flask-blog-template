@@ -2,7 +2,7 @@ from flask import Flask, render_template, url_for, flash, redirect
 from flask_login import LoginManager, login_user, current_user, logout_user, login_required
 
 # loging/register forms
-from forms import RegistrationForm, LoginForm
+from forms import RegistrationForm, LoginForm, NewPostForm
 
 # useful packages
 from bson.objectid import ObjectId
@@ -91,9 +91,10 @@ def load_user(user_id):
 
     return None
 
-@app.route("/")
-@app.route("/home")
-def feed():
+@app.route("/", methods=['GET'])
+@app.route("/discover", methods=['GET'])
+def discover():
+
     return render_template('feed.html', posts=posts)
 
 
@@ -104,7 +105,7 @@ def register():
     if current_user.is_authenticated:
 
         # If they are then send them back to feed
-        return redirect(url_for('home'))
+        return redirect(url_for('discover'))
 
     # Create form instance
     form = RegistrationForm()
@@ -129,7 +130,7 @@ def register():
         flash('Account created for ' + form.username.data + '! You can now login.', 'success')
 
         # Redirect user to the home feed
-        return redirect(url_for('feed'))
+        return redirect(url_for('discover'))
 
     # render the register html template and form for GET requests to '/register'
     return render_template('register.html', form=form)
@@ -138,7 +139,7 @@ def register():
 @app.route("/login", methods=['GET', 'POST'])
 def login():
     if current_user.is_authenticated:
-        return redirect(url_for('home'))
+        return redirect(url_for('discover'))
 
     # Create form instance
     form = LoginForm()
@@ -165,7 +166,7 @@ def login():
                 flash('You have been logged in!', 'success')
 
                 # Redirect user to the home feed
-                return redirect(url_for('feed'))
+                return redirect(url_for('discover'))
 
             # Incorrect password
             else:
@@ -183,6 +184,28 @@ def login():
     return render_template('login.html', form=form)
 
 
+@app.route("/create/post", methods=['GET', 'POST'])
+@login_required
+def new_post():
+
+    # Create form instance
+    form = NewPostForm()
+
+    # Check that fields are valid
+    if form.validate_on_submit():
+
+        # Submit post to database
+        newUser = db.posts.insert_one({
+            "author": current_user.id,  # Store author as their id for later convience
+            "content": form.content.data,
+            "title": form.title.data
+        })
+
+        flash('Your post has been created!', 'success')
+
+        return redirect(url_for('discover'))
+
+    return render_template('create_post.html', form=form, legend="New Post")
 
 @app.route("/u/<string:username>")
 @login_required
@@ -195,7 +218,7 @@ def account(username):
 @app.route("/logout")
 def logout():
     logout_user()
-    return redirect(url_for('home'))
+    return redirect(url_for('discover'))
 
 
 
