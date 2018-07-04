@@ -1,0 +1,13 @@
+
+{% extends "index.html" %}
+{% block content %}
+    <div class="content-section">
+      <div class="media">
+        <img class="rounded-circle account-img" src="{{ url_for('static', filename='assets/eli-2-big.jpg')}}">
+        <div class="media-body">
+          <h2 class="account-heading">{{ user.username }}</h2>
+          <p class="text-secondary ml-4">{{ user.email }}</p>
+        </div>
+      </div>
+    </div>
+{% endblock content %}

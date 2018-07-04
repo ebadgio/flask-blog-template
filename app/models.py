@@ -1,6 +1,9 @@
 from server import db
 
-
+"""
+User class instance. Necessary for providing flask_login a user with
+the required attributes
+"""
 class User():
 
     def __init__(self, username, email, id):

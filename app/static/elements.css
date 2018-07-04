@@ -53,3 +53,14 @@ a.navbar-brand {
   padding-bottom: 1px;
   margin-bottom: 4px;
 }
+
+.account-img {
+  height: 200px;
+  width: 200px;
+  object-fit: cover;
+  max-width: 40%;
+}
+
+.account-heading {
+
+}

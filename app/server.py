@@ -1,17 +1,32 @@
 from flask import Flask, render_template, url_for, flash, redirect
-from forms import RegistrationForm, LoginForm
-from pymongo import MongoClient
 from flask_login import LoginManager, login_user, current_user, logout_user, login_required
+
+# loging/register forms
+from forms import RegistrationForm, LoginForm
+
+# useful packages
 from bson.objectid import ObjectId
 import os
 
+# __init__
 app = Flask(__name__)
 app.config['SECRET_KEY'] = os.environ['SECRET_KEY']
+
+# Password hashing
+from flask_bcrypt import Bcrypt
+bcrypt = Bcrypt(app)
+
+# MongoDB config
+from pymongo import MongoClient
 client = MongoClient(os.environ['MONGODB_URI'])
 db = client['flask-blog']
+
+# flask_login config
 login_manager = LoginManager(app)
 login_manager.login_view = 'login'
 login_manager.login_message_category = 'info'
+
+# User model
 from models import User
 
 # Dummy data posts
@@ -77,13 +92,18 @@ def load_user(user_id):
     return None
 
 @app.route("/")
+@app.route("/home")
 def feed():
     return render_template('feed.html', posts=posts)
 
 
 @app.route("/register", methods=['GET', 'POST'])
 def register():
+
+    # Check if user is already logged in
     if current_user.is_authenticated:
+
+        # If they are then send them back to feed
         return redirect(url_for('home'))
 
     # Create form instance
@@ -92,10 +112,13 @@ def register():
     # Make sure the user's entries are valid
     if form.validate_on_submit():
 
+        # Hash password for security
+        hashed_password = bcrypt.generate_password_hash(form.password.data).decode('utf-8')
+
         # Add user to database
         newUser = db.users.insert_one({
             "username": form.username.data,
-            "password": form.password.data,
+            "password": hashed_password, # Store hashed password in DB
             "email": form.email.data
         })
 
@@ -109,7 +132,7 @@ def register():
         return redirect(url_for('feed'))
 
     # render the register html template and form for GET requests to '/register'
-    return render_template('register.html', title='Register', form=form)
+    return render_template('register.html', form=form)
 
 
 @app.route("/login", methods=['GET', 'POST'])
@@ -123,32 +146,51 @@ def login():
     # Make sure the user's entries are valid
     if form.validate_on_submit():
 
-        u = db.users.find_one({"email": form.email.data, "password": form.password.data})
+        # Search database for user by email
+        u = db.users.find_one({"email": form.email.data})
 
         # Check that this user is in the database
         if u:
 
-            user = User(u["username"], u["email"], str(u["_id"]))
+            # Check that user entered correct password
+            if bcrypt.check_password_hash(u.password, form.password.data):
 
-            login_user(user, remember=True)
+                # put mongodb user obj into User class for it to work with flask_login
+                user = User(u["username"], u["email"], str(u["_id"]))
 
-            # Alert user that login was succesful
-            flash('You have been logged in!', 'success')
+                # login user with flask_login
+                login_user(user, remember=True)
 
-            # Redirect user to the home feed
-            return redirect(url_for('feed'))
+                # Alert user that login was succesful
+                flash('You have been logged in!', 'success')
+
+                # Redirect user to the home feed
+                return redirect(url_for('feed'))
+
+            # Incorrect password
+            else:
+
+                # Notify user
+                flash('Login Unsuccessful. Incorrect password. Please check work and try again.', 'danger')
+
+        # Either user entered incorrect email or user is not actually registered
         else:
 
-            # Otherwise alert user that login was unsuccessful
-            flash('Login Unsuccessful. Please check username and password', 'danger')
+            # Notify user
+            flash('Login Unsuccessful. Email not found. Please try again or Register.', 'danger')
 
     # render the login html template and form for GET requests to '/login'
-    return render_template('login.html', title='Login', form=form)
+    return render_template('login.html', form=form)
+
+
 
 @app.route("/u/<string:username>")
 @login_required
 def account(username):
-    return "<h1>Account page " + username + "<h1/>"
+
+    u = db.users.find_one({"username": username})
+
+    return render_template('account.html', user=u)
 
 @app.route("/logout")
 def logout():
