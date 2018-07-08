@@ -1,8 +1,7 @@
-from flask import Flask, render_template, url_for, flash, redirect
+from flask import Flask, render_template, url_for, flash, redirect, request
 from flask_login import LoginManager, login_user, current_user, logout_user, login_required
-
-# loging/register forms
-from forms import RegistrationForm, LoginForm, NewPostForm
+from datetime import datetime
+import json
 
 # useful packages
 from bson.objectid import ObjectId
@@ -17,7 +16,7 @@ from flask_bcrypt import Bcrypt
 bcrypt = Bcrypt(app)
 
 # MongoDB config
-from pymongo import MongoClient
+from pymongo import MongoClient, DESCENDING
 client = MongoClient(os.environ['MONGODB_URI'])
 db = client['flask-blog']
 
@@ -29,57 +28,9 @@ login_manager.login_message_category = 'info'
 # User model
 from models import User
 
-# Dummy data posts
-posts = [
-    {
-        'author': 'Eli Badgio',
-        'title': 'First Blog Post',
-        'content': 'Some simple content.',
-        'date_posted': 'June 16, 2018'
-    },
-    {
-        'author': 'Simon Sheintoch',
-        'title': 'Second Blog Post',
-        'content': 'Some other content!',
-        'date_posted': 'June 16, 2018'
-    },
-    {
-        'author': 'Eli Badgio',
-        'title': 'First Blog Post',
-        'content': 'Some simple content.',
-        'date_posted': 'June 16, 2018'
-    },
-    {
-        'author': 'Simon Sheintoch',
-        'title': 'Second Blog Post',
-        'content': 'Some other content!',
-        'date_posted': 'June 16, 2018'
-    },
-    {
-        'author': 'Eli Badgio',
-        'title': 'First Blog Post',
-        'content': 'Some simple content.',
-        'date_posted': 'June 16, 2018'
-    },
-    {
-        'author': 'Simon Sheintoch',
-        'title': 'Second Blog Post',
-        'content': 'Some other content!',
-        'date_posted': 'June 16, 2018'
-    },
-    {
-        'author': 'Eli Badgio',
-        'title': 'First Blog Post',
-        'content': 'Some simple content.',
-        'date_posted': 'June 16, 2018'
-    },
-    {
-        'author': 'Simon Sheintoch',
-        'title': 'Second Blog Post',
-        'content': 'Some other content!',
-        'date_posted': 'June 16, 2018'
-    }
-]
+# loging/register forms
+from forms import RegistrationForm, LoginForm, NewPostForm
+
 
 @login_manager.user_loader
 def load_user(user_id):
@@ -91,11 +42,33 @@ def load_user(user_id):
 
     return None
 
+def format_posts(raw_posts):
+    send = []
+    for post in raw_posts:
+        post['_id'] = str(post['_id'])
+        post['createdAt'] = ('/').join([str(post['createdAt'].month), str(post['createdAt'].day), str(post['createdAt'].year)])
+        send.append(post)
+    return send
+
 @app.route("/", methods=['GET'])
 @app.route("/discover", methods=['GET'])
 def discover():
 
-    return render_template('feed.html', posts=posts)
+    posts = db.posts.find().sort("createdAt", DESCENDING).limit(8)
+
+    formatted_posts = format_posts(posts)
+
+    return render_template('feed.html', posts=formatted_posts)
+
+@app.route("/next/posts/<int:page>", methods=['POST'])
+def more(page):
+
+    skip_by = (page - 1) * 8
+
+    posts = db.posts.find().sort("createdAt", DESCENDING).skip(skip_by).limit(8)
+
+    return json.dumps(format_posts(posts))
+
 
 
 @app.route("/register", methods=['GET', 'POST'])
@@ -154,7 +127,7 @@ def login():
         if u:
 
             # Check that user entered correct password
-            if bcrypt.check_password_hash(u.password, form.password.data):
+            if bcrypt.check_password_hash(u["password"], form.password.data):
 
                 # put mongodb user obj into User class for it to work with flask_login
                 user = User(u["username"], u["email"], str(u["_id"]))
@@ -196,9 +169,10 @@ def new_post():
 
         # Submit post to database
         newUser = db.posts.insert_one({
-            "author": current_user.id,  # Store author as their id for later convience
+            "author": current_user.username,
             "content": form.content.data,
-            "title": form.title.data
+            "title": form.title.data,
+            "createdAt": datetime.now()
         })
 
         flash('Your post has been created!', 'success')
