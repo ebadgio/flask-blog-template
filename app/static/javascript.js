@@ -14,7 +14,7 @@ function loadMore() {
 
                 var child = document.createElement('div');
 
-                child.innerHTML = `<article class="media content-section shadow">
+                child.innerHTML = `<article class="media content-section">
                       <div class="media-body">
                         <div class="article-info">
                           <a class="mr-2" href="${ '/u/' + post.author}">u/${ post.author }</a>

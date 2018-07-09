@@ -13,6 +13,9 @@ a.navbar-brand {
 #nav{
   /*background-color: #212121;*/
   background-color: #202124;
+  background-color: #009688;
+  background-color: #3D5AFE;
+  background-color: #3F51B5;
 }
 
 .nav-link {
@@ -33,6 +36,7 @@ a.navbar-brand {
   background: #ffffff;
   padding: 10px 20px;
   margin-bottom: 20px;
+  border-radius: 4px;
   /*max-width: 550px;*/
 }
 
@@ -71,4 +75,15 @@ a.navbar-brand {
 
 .account-heading {
 
+}
+
+.user-link {
+  color: #424242;
+  -webkit-transition: color .25s ease;
+  transition: color .25s ease;
+}
+
+.user-link:hover {
+  color: #606060;
+  text-decoration: none;
 }

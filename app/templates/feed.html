@@ -6,10 +6,10 @@
 
                 <!-- display each post in the feed -->
                 {% for post in posts %}
-                  <article class="media content-section shadow">
+                  <article class="media content-section">
                       <div class="media-body">
                         <div class="article-info">
-                          <a class="mr-2" href="{{ '/u/' + post.author}}">u/{{ post.author }}</a>
+                          <a class="mr-2 user-link" href="{{ '/u/' + post.author}}">u/{{ post.author }}</a>
                           <small class="text-muted">{{ post.createdAt }}</small>
                         </div>
                         <h5><span class="article-title">{{ post.title }}</a></h5>
@@ -20,7 +20,7 @@
 
               </div>
               <div class="content-wrapper">
-                <button type="button" id="load-btn" onclick="loadMore()" class="btn btn-light mb-4" style="width: 100%">Load More</button>
+                <button type="button" id="load-btn" onclick="loadMore()" class="btn btn-secondary mb-4" style="width: 100%">Load More</button>
               </div>
             </div>
         </div>
