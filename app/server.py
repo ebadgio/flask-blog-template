@@ -60,7 +60,7 @@ def discover():
 
     return render_template('feed.html', posts=formatted_posts)
 
-@app.route("/next/posts/<int:page>", methods=['POST'])
+@app.route("/next/posts/<int:page>", methods=['GET'])
 def more(page):
 
     skip_by = (page - 1) * 8
