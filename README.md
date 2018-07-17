@@ -14,5 +14,5 @@ A basic blogging app template developed with Python Flask on the backend
     * pro pic uploads
     * resize picture to save space
 * Edit and Delete posts
-
+* Exception handling
 
