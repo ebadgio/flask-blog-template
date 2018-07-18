@@ -9,7 +9,7 @@ function loadMore() {
     // Create http request instance
     var xhttp = new XMLHttpRequest();
 
-    // Listen for changes 
+    // Listen for changes
     xhttp.onreadystatechange = function() {
 
         // If successful response
@@ -29,7 +29,7 @@ function loadMore() {
                 child.innerHTML = `<article class="media content-section">
                       <div class="media-body">
                         <div class="article-info">
-                          <a class="mr-2" href="${ '/u/' + post.author}">u/${ post.author }</a>
+                          <a class="mr-2 user-link" href="${ '/u/' + post.author}">u/${ post.author }</a>
                           <small class="text-muted">${ post.createdAt }</small>
                         </div>
                         <h5><span class="article-title">${ post.title }</a></h5>
@@ -42,7 +42,7 @@ function loadMore() {
             });
 
             // If there are no more posts left, we want to tell the user
-            if (!!posts) {
+            if (posts.length === 0) {
 
                 // Get rid of load button
                 elem = document.getElementById('load-btn');
@@ -63,7 +63,7 @@ function loadMore() {
     xhttp.open("GET", baseUrl + 'next/posts/' + nextPage, true);
     xhttp.send();
 
-    // Increment page 
+    // Increment page
     nextPage++;
 
 }
