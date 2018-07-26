@@ -3,9 +3,11 @@ from flask_login import LoginManager, login_user, current_user, logout_user, log
 from datetime import datetime
 import json
 
-# useful packages
+# Utilities
 from bson.objectid import ObjectId
 import os
+from PIL import Image
+import random
 
 # __init__
 app = Flask(__name__)
@@ -29,7 +31,7 @@ login_manager.login_message_category = 'info'
 from models import User
 
 # loging/register forms
-from forms import RegistrationForm, LoginForm, NewPostForm
+from forms import RegistrationForm, LoginForm, NewPostForm, UpdateProfileForm
 
 
 @login_manager.user_loader
@@ -38,7 +40,7 @@ def load_user(user_id):
         "_id": ObjectId(user_id)
     })
     if u:
-        return User(u["username"], u["email"], str(u["_id"]))
+        return User(u["username"], u["email"], str(u["_id"]), u["profile_picture"])
 
     return None
 
@@ -93,6 +95,7 @@ def register():
         newUser = db.users.insert_one({
             "username": form.username.data,
             "password": hashed_password, # Store hashed password in DB
+            "profile_picture": "assets/default_pro_pic.jpg",
             "email": form.email.data
         })
 
@@ -130,7 +133,7 @@ def login():
             if bcrypt.check_password_hash(u["password"], form.password.data):
 
                 # put mongodb user obj into User class for it to work with flask_login
-                user = User(u["username"], u["email"], str(u["_id"]))
+                user = User(u["username"], u["email"], str(u["_id"]), u["profile_picture"])
 
                 # login user with flask_login
                 login_user(user, remember=True)
@@ -182,18 +185,91 @@ def new_post():
     return render_template('create_post.html', form=form, legend="New Post")
 
 @app.route("/u/<string:username>")
-@login_required
-def account(username):
+def profile(username):
 
+    # Find user in database by username
     u = db.users.find_one({"username": username})
 
-    return render_template('account.html', user=u)
+    if u:
+
+        # If user exists, find top 5 most recent posts by that user
+        posts = db.posts.find({"author": username}).sort("createdAt", DESCENDING).limit(5)
+
+        # Format post dates
+        formatted = format_posts(posts)
+
+        # Render profile page
+        return render_template('profile.html', user=u, posts=formatted)
+
+
+    return render_template('404.html', reason="That user doesn't exist"), 404
+
+def save_picture(form_picture):
+
+    # Generate random sequence of characters to create unique filename
+    random_int = random.randint(0,10000)
+
+    # Create file name
+    filename = current_user.username + "." + str(random_int) + "." + form_picture.filename
+
+    print filename
+
+    # Create path to image file
+    picture_path = os.path.join(app.root_path, 'static/assets', filename)
+
+    # Resize the image to save space
+    output_size = (205, 205)
+
+    # Save image to specified path
+    i = Image.open(form_picture)
+    i.thumbnail(output_size)
+    i.save(picture_path)
+
+    return 'assets/' + filename
+
+@app.route("/u/edit/<string:username>", methods=["GET", "POST"])
+@login_required
+def edit_profile(username):
+
+    # Create form instance
+    form = UpdateProfileForm()
+
+    # For post request, check that form was valid
+    if form.validate_on_submit():
+
+        # Need the user in dictionary format for db
+        user = current_user.get_user_dictionary();
+
+        # Save image if one is uploaded
+        if form.picture.data:
+            picture_path = save_picture(form.picture.data)
+            user['profile_picture'] = picture_path
+
+        # Update fields
+        user['email'] = form.email.data
+
+        # Save changes to the user
+        db.users.save(user)
+
+        flash('Your account has been updated!', 'success')
+
+        return redirect(url_for('profile', username=user['username']))
+
+    elif request.method == 'GET':
+
+        # Set the field inputs to already have the current email for this user
+        form.email.data = current_user.email
+
+    return render_template('edit_profile.html', form=form)
 
 @app.route("/logout")
 def logout():
     logout_user()
     return redirect(url_for('discover'))
 
+@app.errorhandler(404)
+def page_not_found(e):
+    return render_template('404.html'), 404
 
 
 if __name__ == '__main__':
