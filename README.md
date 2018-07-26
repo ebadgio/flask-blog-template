@@ -3,7 +3,7 @@ A basic blogging app template developed with Python Flask on the backend
 
 
 ## Dependencies
-flask flask_login bson flask_bcrypt pymongo flask_wtf wtforms
+flask flask_login bson flask_bcrypt pymongo flask_wtf wtforms pillow
 
 ## TODO:
 
