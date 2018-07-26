@@ -16,7 +16,8 @@ flask flask_login bson flask_bcrypt pymongo flask_wtf wtforms
 * ~~Edit account page when user and account page user match~~
     * ~~pro pic uploads~~
     * ~~resize picture to save space~~
-* Add user image to posts
+* ~~Add user image to posts~~
+* ~~Logout User~~
 * Edit and Delete posts
 * Exception handling
 
