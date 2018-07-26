@@ -47,8 +47,20 @@ def load_user(user_id):
 def format_posts(raw_posts):
     send = []
     for post in raw_posts:
+
+        # Get the author's user object
+        user = db.users.find_one({"username": post['author']})
+
+        # Obtain the profile picture for this user and add it to the post
+        post['author_image'] = user['profile_picture']
+
+        # Convert the ObjectId into a string
         post['_id'] = str(post['_id'])
+
+        # Format date to naturally readable form
         post['createdAt'] = ('/').join([str(post['createdAt'].month), str(post['createdAt'].day), str(post['createdAt'].year)])
+        
+        # Add formatted posts to the list we'll return
         send.append(post)
     return send
 
@@ -61,6 +73,8 @@ def discover():
     formatted_posts = format_posts(posts)
 
     return render_template('feed.html', posts=formatted_posts)
+
+    
 
 @app.route("/next/posts/<int:page>", methods=['GET'])
 def more(page):
