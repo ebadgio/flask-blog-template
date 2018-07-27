@@ -46,5 +46,5 @@ class UpdateProfileForm(FlaskForm):
     def validate_email(self, email):
         if email.data != current_user.email:
             existing_user = db.users.find_one({"email": email.data})
-            if user:
+            if existing_user:
                 raise ValidationError('That email is taken. Please choose a different one.')

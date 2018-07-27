@@ -36,10 +36,14 @@ from forms import RegistrationForm, LoginForm, NewPostForm, UpdateProfileForm
 
 @login_manager.user_loader
 def load_user(user_id):
+
+    # Find user by id
     u = db.users.find_one({
         "_id": ObjectId(user_id)
     })
+
     if u:
+        # Load user in User object format to satisfy Flask's requirements
         return User(u["username"], u["email"], str(u["_id"]), u["profile_picture"])
 
     return None
@@ -68,21 +72,26 @@ def format_posts(raw_posts):
 @app.route("/discover", methods=['GET'])
 def discover():
 
+    # Get top 8 most recent posts
     posts = db.posts.find().sort("createdAt", DESCENDING).limit(8)
 
+    # Format the posts
     formatted_posts = format_posts(posts)
 
     return render_template('feed.html', posts=formatted_posts)
 
-    
+
 
 @app.route("/next/posts/<int:page>", methods=['GET'])
 def more(page):
 
+    # Determine amount of posts to skip in the fetch, so feed is continuous without gaps or repeats
     skip_by = (page - 1) * 8
 
+    # Get the posts
     posts = db.posts.find().sort("createdAt", DESCENDING).skip(skip_by).limit(8)
 
+    # Format posts and send as json to client
     return json.dumps(format_posts(posts))
 
 
@@ -196,7 +205,7 @@ def new_post():
 
         return redirect(url_for('discover'))
 
-    return render_template('create_post.html', form=form, legend="New Post")
+    return render_template('create_post.html', form=form, legend="New Post", action="/create/post")
 
 @app.route("/u/<string:username>")
 def profile(username):
@@ -275,6 +284,81 @@ def edit_profile(username):
         form.email.data = current_user.email
 
     return render_template('edit_profile.html', form=form)
+
+@app.route("/delete/post/<string:post_id>", methods=['POST'])
+@login_required
+def delete_post(post_id):
+
+    print post_id
+
+    # Find the post to be deleted using the post id
+    post = db.posts.find_one({
+        "_id": ObjectId(post_id)
+    })
+
+    # If the post doesn't exist return 404
+    if not post:
+        return render_template('404.html', reason="That post doesn't exist"), 404
+
+    # If this user didn't make the post, abort the action
+    if post['author'] != current_user.username:
+        print post['author'], current_user.username
+        abort(403)
+
+    # Post exits and correct user, so delete the post
+    db.posts.delete_one({
+        "_id": ObjectId(post_id)
+    })
+
+    # Notify that it was succesful
+    flash('Your post has been deleted!', 'success')
+
+    return redirect(url_for('discover'))
+
+@app.route("/edit/post/<string:post_id>", methods=['GET', 'POST'])
+@login_required
+def update_post(post_id):
+
+    # Find the post to be edited using the post id
+    post = db.posts.find_one({
+        "_id": ObjectId(post_id)
+    })
+
+    print "post", post
+
+    # If the post doesn't exist return 404
+    if not post:
+        return render_template('404.html', reason="That post doesn't exist"), 404
+
+    # If this user didn't make the post, abort the action
+    if post['author'] != current_user.username:
+        abort(403)
+
+    # Create form instance
+    form = NewPostForm()
+
+    # Ensure form entries are valid
+    if form.validate_on_submit():
+
+        # Update fields
+        post['title'] = form.title.data
+        post['content'] = form.content.data
+
+        # Save changes
+        db.posts.update({"_id": post['_id']}, post)
+
+        # Notify user
+        flash('Your post has been updated!', 'success')
+
+        return redirect(url_for('discover'))
+
+    elif request.method == 'GET':
+
+        # Set the fields to be the current post data
+        form.title.data = post['title']
+        form.content.data = post['content']
+
+    return render_template('create_post.html', form=form, legend='Update Post', action='/edit/post/' + post_id)
 
 @app.route("/logout")
 def logout():

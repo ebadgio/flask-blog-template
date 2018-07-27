@@ -18,6 +18,6 @@ flask flask_login bson flask_bcrypt pymongo flask_wtf wtforms pillow
     * ~~resize picture to save space~~
 * ~~Add user image to posts~~
 * ~~Logout User~~
-* Edit and Delete posts
+* ~~Edit and Delete posts~~
 * Exception handling
 

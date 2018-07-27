@@ -18,6 +18,19 @@
                         </div>
                         <h4><span class="article-title">{{ post.title }}</span></h4>
                       </div>
+                      {% if current_user.username == post.author %}
+                        <button class="btn btn-light" type="button" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                          <i class="fas fa-ellipsis-h" style="color: #bdbdbd"></i>
+                        </button>
+                        <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+                          <a href="{{'/edit/post/' + post._id}}">
+                            <button class="dropdown-item" type="button">Edit</button>
+                          </a>
+                          <form action="{{ url_for('delete_post', post_id=post._id) }}" method="POST">
+                              <input class="dropdown-item" type="submit" value="Delete">
+                          </form>
+                        </div>
+                      {% endif %}
                     </div>
                     <p class="article-content">{{ post.content }}</p>
                   </article>
