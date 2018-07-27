@@ -19,5 +19,5 @@ flask flask_login bson flask_bcrypt pymongo flask_wtf wtforms pillow
 * ~~Add user image to posts~~
 * ~~Logout User~~
 * ~~Edit and Delete posts~~
-* Exception handling
+* ~~Exception handling~~
 

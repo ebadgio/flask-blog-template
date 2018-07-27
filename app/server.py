@@ -225,7 +225,7 @@ def profile(username):
         return render_template('profile.html', user=u, posts=formatted)
 
 
-    return render_template('404.html', reason="That user doesn't exist"), 404
+    return render_template('/error_pages/404.html', reason="That user doesn't exist"), 404
 
 def save_picture(form_picture):
 
@@ -289,8 +289,6 @@ def edit_profile(username):
 @login_required
 def delete_post(post_id):
 
-    print post_id
-
     # Find the post to be deleted using the post id
     post = db.posts.find_one({
         "_id": ObjectId(post_id)
@@ -298,12 +296,11 @@ def delete_post(post_id):
 
     # If the post doesn't exist return 404
     if not post:
-        return render_template('404.html', reason="That post doesn't exist"), 404
+        return render_template('/error_pages/404.html', reason="That post doesn't exist"), 404
 
     # If this user didn't make the post, abort the action
     if post['author'] != current_user.username:
-        print post['author'], current_user.username
-        abort(403)
+        return render_template('/error_pages/403.html'), 403
 
     # Post exits and correct user, so delete the post
     db.posts.delete_one({
@@ -328,11 +325,11 @@ def update_post(post_id):
 
     # If the post doesn't exist return 404
     if not post:
-        return render_template('404.html', reason="That post doesn't exist"), 404
+        return render_template('/error_pages/404.html', reason="That post doesn't exist"), 404
 
     # If this user didn't make the post, abort the action
     if post['author'] != current_user.username:
-        abort(403)
+        return render_template('/error_pages/403.html'), 403
 
     # Create form instance
     form = NewPostForm()
@@ -365,9 +362,17 @@ def logout():
     logout_user()
     return redirect(url_for('discover'))
 
+@app.errorhandler(403)
+def page_not_found(e):
+    return render_template('/error_pages/403.html'), 403
+
 @app.errorhandler(404)
 def page_not_found(e):
-    return render_template('404.html'), 404
+    return render_template('/error_pages/404.html'), 404
+
+@app.errorhandler(500)
+def page_not_found(e):
+    return render_template('/error_pages/500.html'), 500
 
 
 if __name__ == '__main__':

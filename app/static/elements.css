@@ -90,3 +90,9 @@ a.navbar-brand {
     width: 120px !important;
   }
 }
+
+@media only screen and (max-width: 768px) {
+  .nav-tab-divider {
+    display: none;
+  }
+}
