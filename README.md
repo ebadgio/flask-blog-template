@@ -1,23 +1,29 @@
 # flask-blog-template
-A basic blogging app template developed with Python Flask on the backend
+This is a basic blogging app template developed with Python Flask on the backend. I made it simply to learn how to use the Python Flask framework, but after finishing, I figured someone might find it useful as a starting point/template for their app. Primary features of the template: user authentication, basic user profile including profile picture uploads, creating/editing/deleting posts, and loading posts to a central newsfeed.
+
+**Technologies used:** 
+   * Python Flask
+   * HTML templating with Jinja2
+   * CSS3 styling
+   * Minimal javascript used for post feed loading
+   * MongoDB database
 
 
-## Dependencies
-flask flask_login bson flask_bcrypt pymongo flask_wtf wtforms pillow
+## Usage
+1. Fork the repository, clone it, and cd into the directory
 
-## TODO:
+1. Resolve the dependencies:
+   * `pip install flask flask_login bson flask_bcrypt pymongo flask_wtf wtforms pillow`
 
-* ~~Password hashing~~
-* ~~New posts~~
-* ~~Populate feed with posts from DB~~
-    * ~~load more after 8 posts~~
-    * ~~get rid of load more btn when nothing left~~
-* ~~Put user's posts on their account page~~
-* ~~Edit account page when user and account page user match~~
-    * ~~pro pic uploads~~
-    * ~~resize picture to save space~~
-* ~~Add user image to posts~~
-* ~~Logout User~~
-* ~~Edit and Delete posts~~
-* ~~Exception handling~~
+1. Set up a mongo database instance. My provider of choice is ![](https://www.mlab.com)
+
+1. Set expected environmental variables:
+   * SECRET_KEY: some random text will suffice
+   * FLASK_ENV: "development"
+   * FLASK_APP: the name of the file which initializes the flask app (in this case it is server.py but you can change that)
+   * MONGODB_URI: the database uri for the mongo instance
+
+1. Start up the server: `flask run`
+
+1. Navigate to localhost:5000
 
