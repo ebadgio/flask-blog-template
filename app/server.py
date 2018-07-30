@@ -33,7 +33,11 @@ from models import User
 # loging/register forms
 from forms import RegistrationForm, LoginForm, NewPostForm, UpdateProfileForm
 
-
+"""
+This will execute each time the site is loaded. To load the user from its session using the stored
+user_id. If there is no user_id or if the id is valid, then there is no user session to load, and the
+loader simply returns None.
+"""
 @login_manager.user_loader
 def load_user(user_id):
 
@@ -47,7 +51,11 @@ def load_user(user_id):
         return User(u["username"], u["email"], str(u["_id"]), u["profile_picture"])
 
     return None
-
+"""
+This function is used to format the dates on posts before sening them to the client. Also for 
+each post, the post author username is used to obtain the user object, and add the author's profile 
+picture to the post, for frontend rendering purposes.
+"""
 def format_posts(raw_posts):
     send = []
     for post in raw_posts:
@@ -83,7 +91,7 @@ def discover():
 
 
 @app.route("/next/posts/<int:page>", methods=['GET'])
-def more(page):
+def more_posts(page):
 
     # Determine amount of posts to skip in the fetch, so feed is continuous without gaps or repeats
     skip_by = (page - 1) * 8
@@ -227,6 +235,10 @@ def profile(username):
 
     return render_template('/error_pages/404.html', reason="That user doesn't exist"), 404
 
+"""
+This function takes a photo object, builds a new filename for it, and saves it the server.
+It resizes the photo in order to save space.
+"""
 def save_picture(form_picture):
 
     # Generate random sequence of characters to create unique filename
@@ -240,7 +252,7 @@ def save_picture(form_picture):
     # Create path to image file
     picture_path = os.path.join(app.root_path, 'static/assets', filename)
 
-    # Resize the image to save space
+    # Resize the image to save space (205x205 pixels)
     output_size = (205, 205)
 
     # Save image to specified path
@@ -362,6 +374,8 @@ def logout():
     logout_user()
     return redirect(url_for('discover'))
 
+#### ERROR HANDLERS ####
+
 @app.errorhandler(403)
 def page_not_found(e):
     return render_template('/error_pages/403.html'), 403
@@ -374,6 +388,6 @@ def page_not_found(e):
 def page_not_found(e):
     return render_template('/error_pages/500.html'), 500
 
-
+# Used in flask initialization
 if __name__ == '__main__':
     app.run(debug=True)
