@@ -5,6 +5,7 @@ This is a basic blogging app template developed with Python Flask on the backend
    * Python Flask
    * HTML templating with Jinja2
    * CSS3 styling
+   * Bootstrap
    * Minimal javascript used for post feed loading
    * MongoDB database
 
