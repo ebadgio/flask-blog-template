@@ -104,3 +104,9 @@ venv.bak/
 
 # mypy
 .mypy_cache/
+
+# ide specific config files
+.idea/
+
+# environmental variables
+env.sh
