@@ -6,15 +6,33 @@
 
                 <!-- display each post in the feed -->
                 {% for post in posts %}
-                  <article class="media content-section">
+                  <article class="content-section">
+                    <div class="media mb-2">
+                      <div class="rounded-circle article-img-wrapper">
+                        <img class="rounded-circle article-img" src="{{ url_for('static', filename= post.author_image) }}">
+                      </div>
                       <div class="media-body">
-                        <div class="article-info">
+                        <div>
                           <a class="mr-2 user-link" href="{{ '/u/' + post.author}}">u/{{ post.author }}</a>
                           <small class="text-muted">{{ post.createdAt }}</small>
                         </div>
-                        <h5><span class="article-title">{{ post.title }}</span></h5>
-                        <p class="article-content">{{ post.content }}</p>
+                        <h4><span class="article-title">{{ post.title }}</span></h4>
                       </div>
+                      {% if current_user.username == post.author %}
+                        <button class="btn btn-light" type="button" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                          <i class="fas fa-ellipsis-h" style="color: #bdbdbd"></i>
+                        </button>
+                        <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+                          <a href="{{'/edit/post/' + post._id}}">
+                            <button class="dropdown-item" type="button">Edit</button>
+                          </a>
+                          <form action="{{ url_for('delete_post', post_id=post._id) }}" method="POST">
+                              <input class="dropdown-item" type="submit" value="Delete">
+                          </form>
+                        </div>
+                      {% endif %}
+                    </div>
+                    <p class="article-content">{{ post.content }}</p>
                   </article>
                 {% endfor %}
 

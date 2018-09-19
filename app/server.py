@@ -33,22 +33,46 @@ from models import User
 # loging/register forms
 from forms import RegistrationForm, LoginForm, NewPostForm, UpdateProfileForm
 
-
+"""
+This will execute each time the site is loaded. To load the user from its session using the stored
+user_id. If there is no user_id or if the id is valid, then there is no user session to load, and the
+loader simply returns None.
+"""
 @login_manager.user_loader
 def load_user(user_id):
+
+    # Find user by id
     u = db.users.find_one({
         "_id": ObjectId(user_id)
     })
+
     if u:
+        # Load user in User object format to satisfy Flask's requirements
         return User(u["username"], u["email"], str(u["_id"]), u["profile_picture"])
 
     return None
-
+"""
+This function is used to format the dates on posts before sening them to the client. Also for 
+each post, the post author username is used to obtain the user object, and add the author's profile 
+picture to the post, for frontend rendering purposes.
+"""
 def format_posts(raw_posts):
     send = []
     for post in raw_posts:
+
+        # Get the author's user object
+        user = db.users.find_one({"username": post['author']})
+
+        # Obtain the profile picture for this user and add it to the post
+        post['author_image'] = user['profile_picture']
+
+        # Convert the ObjectId into a string
         post['_id'] = str(post['_id'])
+
+        # Format date to naturally readable form
         post['createdAt'] = ('/').join([str(post['createdAt'].month), str(post['createdAt'].day), str(post['createdAt'].year)])
+        
+        # Add formatted posts to the list we'll return
         send.append(post)
     return send
 
@@ -56,19 +80,26 @@ def format_posts(raw_posts):
 @app.route("/discover", methods=['GET'])
 def discover():
 
+    # Get top 8 most recent posts
     posts = db.posts.find().sort("createdAt", DESCENDING).limit(8)
 
+    # Format the posts
     formatted_posts = format_posts(posts)
 
     return render_template('feed.html', posts=formatted_posts)
 
-@app.route("/next/posts/<int:page>", methods=['GET'])
-def more(page):
 
+
+@app.route("/next/posts/<int:page>", methods=['GET'])
+def more_posts(page):
+
+    # Determine amount of posts to skip in the fetch, so feed is continuous without gaps or repeats
     skip_by = (page - 1) * 8
 
+    # Get the posts
     posts = db.posts.find().sort("createdAt", DESCENDING).skip(skip_by).limit(8)
 
+    # Format posts and send as json to client
     return json.dumps(format_posts(posts))
 
 
@@ -182,7 +213,7 @@ def new_post():
 
         return redirect(url_for('discover'))
 
-    return render_template('create_post.html', form=form, legend="New Post")
+    return render_template('create_post.html', form=form, legend="New Post", action="/create/post")
 
 @app.route("/u/<string:username>")
 def profile(username):
@@ -202,8 +233,12 @@ def profile(username):
         return render_template('profile.html', user=u, posts=formatted)
 
 
-    return render_template('404.html', reason="That user doesn't exist"), 404
+    return render_template('/error_pages/404.html', reason="That user doesn't exist"), 404
 
+"""
+This function takes a photo object, builds a new filename for it, and saves it the server.
+It resizes the photo in order to save space.
+"""
 def save_picture(form_picture):
 
     # Generate random sequence of characters to create unique filename
@@ -217,7 +252,7 @@ def save_picture(form_picture):
     # Create path to image file
     picture_path = os.path.join(app.root_path, 'static/assets', filename)
 
-    # Resize the image to save space
+    # Resize the image to save space (205x205 pixels)
     output_size = (205, 205)
 
     # Save image to specified path
@@ -262,15 +297,97 @@ def edit_profile(username):
 
     return render_template('edit_profile.html', form=form)
 
+@app.route("/delete/post/<string:post_id>", methods=['POST'])
+@login_required
+def delete_post(post_id):
+
+    # Find the post to be deleted using the post id
+    post = db.posts.find_one({
+        "_id": ObjectId(post_id)
+    })
+
+    # If the post doesn't exist return 404
+    if not post:
+        return render_template('/error_pages/404.html', reason="That post doesn't exist"), 404
+
+    # If this user didn't make the post, abort the action
+    if post['author'] != current_user.username:
+        return render_template('/error_pages/403.html'), 403
+
+    # Post exits and correct user, so delete the post
+    db.posts.delete_one({
+        "_id": ObjectId(post_id)
+    })
+
+    # Notify that it was succesful
+    flash('Your post has been deleted!', 'success')
+
+    return redirect(url_for('discover'))
+
+@app.route("/edit/post/<string:post_id>", methods=['GET', 'POST'])
+@login_required
+def update_post(post_id):
+
+    # Find the post to be edited using the post id
+    post = db.posts.find_one({
+        "_id": ObjectId(post_id)
+    })
+
+    print "post", post
+
+    # If the post doesn't exist return 404
+    if not post:
+        return render_template('/error_pages/404.html', reason="That post doesn't exist"), 404
+
+    # If this user didn't make the post, abort the action
+    if post['author'] != current_user.username:
+        return render_template('/error_pages/403.html'), 403
+
+    # Create form instance
+    form = NewPostForm()
+
+    # Ensure form entries are valid
+    if form.validate_on_submit():
+
+        # Update fields
+        post['title'] = form.title.data
+        post['content'] = form.content.data
+
+        # Save changes
+        db.posts.update({"_id": post['_id']}, post)
+
+        # Notify user
+        flash('Your post has been updated!', 'success')
+
+        return redirect(url_for('discover'))
+
+    elif request.method == 'GET':
+
+        # Set the fields to be the current post data
+        form.title.data = post['title']
+        form.content.data = post['content']
+
+    return render_template('create_post.html', form=form, legend='Update Post', action='/edit/post/' + post_id)
+
 @app.route("/logout")
 def logout():
     logout_user()
     return redirect(url_for('discover'))
 
+#### ERROR HANDLERS ####
+
+@app.errorhandler(403)
+def page_not_found(e):
+    return render_template('/error_pages/403.html'), 403
+
 @app.errorhandler(404)
 def page_not_found(e):
-    return render_template('404.html'), 404
+    return render_template('/error_pages/404.html'), 404
 
+@app.errorhandler(500)
+def page_not_found(e):
+    return render_template('/error_pages/500.html'), 500
 
+# Used in flask initialization
 if __name__ == '__main__':
     app.run(debug=True)

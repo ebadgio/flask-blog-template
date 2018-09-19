@@ -3,7 +3,7 @@
     <!-- New post section -->
 <div class="content-wrapper">
     <div class="content-section shadow">
-        <form method="POST" action="/create/post">
+        <form method="POST" action="{{action}}">
           {{ form.hidden_tag() }}
             <fieldset class="form-group">
                 <legend class="border-bottom mb-4">{{ legend }}</legend>

@@ -9,7 +9,7 @@
 
     <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='main.css') }}">
     <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='elements.css') }}">
-
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.2.0/css/all.css" integrity="sha384-hWVjflwFxL6sNzntih27bfxkr27PmbbK/iSvJ+a4+0owXq79v+lsFkW54bOGbiDQ" crossorigin="anonymous">
     <title>Flask Blog</title>
 </head>
 <body>
@@ -23,17 +23,29 @@
           <div class="collapse navbar-collapse" id="navbarToggleExternalContent">
             <div class="navbar-nav ml-auto">
               {% if current_user.is_authenticated %}
+<<<<<<< HEAD
               <a class="nav-item nav-link mr-2" href="{{'/u/' + current_user['username']}}">{{current_user.username}}</a>
               <a class="nav-item" href="/create/post">
                 <button type="button" class="btn btn-outline-light">
                   <span class="glyphicon glyphicon-plus"></span> New Post
                 </button>
               </a>
+=======
+                <a class="nav-item mr-3" href="/create/post">
+                  <button type="button" class="btn btn-outline-light">
+                  <i class="fas fa-plus mr-1"></i> New Post
+                  </button>
+                </a>
+                <a class="nav-item nav-link" href="{{'/u/' + current_user['username']}}">{{current_user.username}}</a>
+                <a class="nav-item nav-link" href="{{'/discover'}}">Home</a>
+                <div class="nav-tab-divider"></div>
+                <a class="nav-item nav-link" href="/logout">Logout</a>
+>>>>>>> 46321cfc89ed5030eb6ec87dd8e75ccd771b80ea
               {% else %}
-              <a class="nav-item nav-link mr-2" href="/login">Sign In</a>
-              <a class="nav-item" href="/register">
-                <button type="button" class="btn btn-outline-light">Get Started</button>
-              </a>
+                <a class="nav-item nav-link mr-2" href="/login">Sign In</a>
+                <a class="nav-item" href="/register">
+                  <button type="button" class="btn btn-outline-light">Get Started</button>
+                </a>
               {% endif %}
             </div>
           </div>
